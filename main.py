@@ -2,9 +2,14 @@ import streamlit as st
 import streamlit.components.v1 as components
 import requests
 
-# Initialize session state for history if not already done
+# Initialize session state for history and clear button if not already done
 if 'history' not in st.session_state:
     st.session_state.history = []
+if 'clear_clicked' not in st.session_state:
+    st.session_state.clear_clicked = False
+
+def clear_history_callback():
+    st.session_state.clear_clicked = True
 
 # Cache the currency API response for 10 minutes
 @st.cache_data(ttl=600)
@@ -115,71 +120,182 @@ st.markdown(
     """
     <style>
     /* Global background & font */
-    body {
-        background: linear-gradient(135deg, #f0f2f6, #ffffff);
-        font-family: 'Arial', sans-serif;
+    .stApp {
+        font-family: 'Segoe UI', Arial, sans-serif;
     }
+    
     /* Title styling */
     .title {
         text-align: center;
-        font-size: 42px;
-        font-weight: bold;
-        color: #4CAF50;
-        margin-bottom: 20px;
+        font-size: 48px;
+        color:green;
+        font-weight: 800;
+        background: linear-gradient(120deg, #4CAF50, #2196F3);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 30px 0;
+        padding: 20px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
     }
+    
     /* Subtitle styling */
     .subtitle {
         text-align: center;
-        font-size: 28px;
-        color: #2196F3;
-        margin-bottom: 15px;
+        font-size: 32px;
+        font-weight: 600;
+        color: #1a73e8;
+        margin: 25px 0;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
     }
+    
     /* Converter card container */
     .converter-container {
-        background: #fff;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        margin: 20px auto;
-        max-width: 800px;
+        background: green;
+        padding: 1px;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        margin: 30px auto;
+        max-width: 900px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
     }
+    
+    /* Input fields styling */
+    .stSelectbox {
+       color:green;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .stNumberInput {
+       color:green;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
     /* History container styling */
     .history {
-        background-color: #f9f9f9;
-        padding: 15px;
-        border-radius: 5px;
-        margin-top: 20px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.9);
+        padding: 25px;
+        border-radius: 15px;
+        margin-top: 30px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.18);
     }
+    
+    .history-item {
+        padding: 12px;
+        margin: 8px 0;
+        background: rgba(240, 242, 246, 0.5);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .history-item:hover {
+        transform: translateX(5px);
+        background: rgba(240, 242, 246, 0.8);
+    }
+    
     /* Button styling */
     .stButton>button {
-        background-color: #4CAF50;
-        color: white;
-        padding: 10px 20px;
+        
+       
+        padding: 12px 30px;
         border: none;
-        border-radius: 5px;
+        border-radius: 10px;
         cursor: pointer;
         font-size: 16px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
     }
+    
     .stButton>button:hover {
-        background-color: #45a049;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(76, 175, 80, 0.3);
+    }
+    
+    /* Category icons */
+    .category-icon {
+        font-size: 24px;
+        margin-right: 10px;
+        vertical-align: middle;
+    }
+    
+    /* Success message styling */
+    .stSuccess {
+        background: rgba(76, 175, 80, 0.1);
+        border: 1px solid #4CAF50;
+        border-radius: 10px;
+        padding: 16px;
+        color: #2e7d32;
+    }
+    
+    /* Formula display styling */
+    .formula {
+        background: rgba(33, 150, 243, 0.1);
+        padding: 1px;
+        border-radius: 10px;
+        margin: 15px 0;
+        font-family: 'Courier New', monospace;
+        border-left: 4px solid #2196F3;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .title {
+            font-size: 36px;
+        }
+        .subtitle {
+            font-size: 24px;
+        }
+        .converter-container {
+            padding: 20px;
+            margin: 15px;
+        }
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# Main Title
-st.markdown("<div class='title'>🔄 Enhanced Unit Converter</div>", unsafe_allow_html=True)
-st.write("Convert between different units easily!")
+# Main Title with animation
+st.markdown("""
+    <div class='title'>
+        🔄 UnitXchange  
+    </div>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+    <p style='text-align: center; color: #666; font-size: 18px; margin-bottom: 30px;'>
+        Your all-in-one solution for quick and accurate unit conversions
+    </p>
+""", unsafe_allow_html=True)
 
 # Wrap the conversion UI in a container card
 st.markdown("<div class='converter-container'>", unsafe_allow_html=True)
 
+# Category selection with icons
+category_icons = {
+    "Distance": "📏",
+    "Temperature": "🌡️",
+    "Weight": "⚖️",
+    "Pressure": "🎯",
+    "Currency": "💱",
+    "Time": "⏰",
+    "Volume": "🧪",
+    "Area": "📐",
+    "Speed": "🚀",
+    "Data": "💾"
+}
+
 # Updated list of categories
 categories = ["Distance", "Temperature", "Weight", "Pressure", "Currency", "Time", "Volume", "Area", "Speed", "Data"]
-category = st.selectbox("Select Category", categories)
-st.markdown(f"<div class='subtitle'>{category} Conversion</div>", unsafe_allow_html=True)
+category = st.selectbox(
+    "Select Category",
+    categories,
+    format_func=lambda x: f"{category_icons[x]} {x}"
+)
 
 # Unit options for each category
 unit_options = {
@@ -199,7 +315,12 @@ from_unit = st.selectbox("From", unit_options[category])
 to_unit = st.selectbox("To", unit_options[category])
 value = st.number_input("Enter Value", min_value=0.0, format="%.2f")
 
-if st.button("Convert"):
+# Center the convert button
+st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
+convert_button = st.button("Convert")
+st.markdown("</div>", unsafe_allow_html=True)
+
+if convert_button:
     if category == "Distance":
         result = distance_converter(from_unit, to_unit, value)
         factor = distance_converter(from_unit, to_unit, 1)
@@ -220,7 +341,7 @@ if st.button("Convert"):
     elif category == "Pressure":
         result = pressure_converter(from_unit, to_unit, value)
         factor = pressure_converter(from_unit, to_unit, 1)
-        st.write(f"🛠️ Formula: {value} {from_unit} × {factor:.4f} = {result:.2f} {to_unit}")
+        st.write(f"🎯 Formula: {value} {from_unit} × {factor:.4f} = {result:.2f} {to_unit}")
     elif category == "Currency":
         result = currency_converter(from_unit, to_unit, value, currency_rates)
         factor = currency_converter(from_unit, to_unit, 1, currency_rates)
@@ -229,7 +350,7 @@ if st.button("Convert"):
     elif category == "Time":
         result = time_converter(from_unit, to_unit, value)
         factor = time_converter(from_unit, to_unit, 1)
-        st.write(f"⏳ Formula: {value} {from_unit} × {factor:.4f} = {result:.2f} {to_unit}")
+        st.write(f"⏰ Formula: {value} {from_unit} × {factor:.4f} = {result:.2f} {to_unit}")
     elif category == "Volume":
         result = volume_converter(from_unit, to_unit, value)
         factor = volume_converter(from_unit, to_unit, 1)
@@ -247,25 +368,84 @@ if st.button("Convert"):
         factor = data_converter(from_unit, to_unit, 1)
         st.write(f"💾 Formula: {value} {from_unit} × {factor:.4f} = {result:.2f} {to_unit}")
     
-    st.success(f"{value} {from_unit} is equal to {result:.2f} {to_unit}")
+    # Enhanced result display
+    st.markdown(f"""
+        <div style='text-align: center; padding: 20px; background: rgba(76, 175, 80, 0.1); border-radius: 10px; margin: 20px 0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);'>
+            <span style='font-size: 24px; color: #2e7d32; font-weight: 500;'>
+                {value} {from_unit} = {result:.2f} {to_unit}
+            </span>
+        </div>
+    """, unsafe_allow_html=True)
+    
     st.session_state.history.append(f"{value} {from_unit} → {result:.2f} {to_unit}")
 
 st.markdown("</div>", unsafe_allow_html=True)  # End of converter container
 
-# Display Conversion History with Clear History and Refresh Currency Rates options
-st.subheader("🕒 Conversion History")
-if st.session_state.history:
-    st.markdown("<div class='history'>", unsafe_allow_html=True)
-    for item in st.session_state.history[::-1][:10]:
-        st.write(f" - {item}")
-    st.markdown("</div>", unsafe_allow_html=True)
-    if st.button("Clear History"):
-        st.session_state.history = []
-        st.success("Conversion history cleared!")
-else:
-    st.write("No conversions yet.") 
+# Enhanced History Display - FIXED VERSION
+st.markdown("""
+    <div style='margin-top: 30px;'>
+        <h2 style='color: #1a73e8; font-size: 28px; margin-bottom: 20px;'>
+            🕒 Recent Conversions
+        </h2>
+    </div>
+""", unsafe_allow_html=True)
 
-if category == "Currency":
-    if st.button("Refresh Currency Rates"):
-        currency_rates = fetch_currency_rates()
-        st.success("Currency rates updated!")
+# Check if clear was clicked and clear the history
+if st.session_state.clear_clicked:
+    st.session_state.history = []
+    st.session_state.clear_clicked = False
+    st.success("Conversion history cleared!")
+    st.rerun()
+
+# Display history and buttons - FIXED to eliminate white space
+if st.session_state.history:
+    # Container for history items
+    history_container = st.container()
+    with history_container:
+        st.markdown("""
+            <div style='background: rgba(255, 255, 255, 0.9); 
+                        padding: 2px; 
+                        border-radius: 15px; 
+                        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); 
+                        border: 1px solid rgba(255, 255, 255, 0.18);
+                        margin-bottom: 20px;'>
+        """, unsafe_allow_html=True)
+        
+        for item in st.session_state.history[::-1][:10]:
+            st.markdown(f"""
+                <div style='padding: 12px;
+                            margin: 8px 0;
+                            background: rgba(240, 242, 246, 0.5);
+                            border-radius: 8px;
+                            transition: all 0.3s ease;
+                            border: 1px solid rgba(0, 0, 0, 0.05);'>
+                    ➜ {item}
+                </div>
+            """, unsafe_allow_html=True)
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+    
+    # Buttons for history actions
+    col1, col2 = st.columns(2)
+    with col1:
+        st.button("🗑️ Clear History", on_click=clear_history_callback)
+    with col2:
+        if category == "Currency" and st.button("🔄 Refresh Rates"):
+            currency_rates = fetch_currency_rates()
+            st.success("Currency rates updated!")
+else:
+    # No empty space between heading and info message
+    st.markdown("""
+        <div style='background: rgba(240, 248, 255, 0.9); 
+                    padding: 20px; 
+                    border-radius: 10px; 
+                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); 
+                    border: 1px solid rgba(230, 240, 250, 0.8);
+                    margin-top: 10px;
+                    margin-bottom: 10px;'>
+            <p style='text-align: center; color: #1a73e8; font-size: 24px;'>
+                No conversions yet. Start converting to build your history!
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+
